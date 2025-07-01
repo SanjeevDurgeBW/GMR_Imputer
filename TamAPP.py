@@ -323,7 +323,7 @@ if __name__ == "__main__":
         ensure_model_directory()
         logger.info("Loading model pipeline once at startup...")
         asyncio.run(async_load_model_pipeline())
-        app.run(host="0.0.0.0", port=8000)
+        app.run(host="0.0.0.0", port=5000)
     except Exception as e:
         logger.error(f"Application failed to start: {e}\n{traceback.format_exc()}")
         sys.exit(1)
