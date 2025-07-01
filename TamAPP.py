@@ -316,7 +316,7 @@ def preprocess_input_data(df):
     return df
 
 # ----------------------------------------------------------------
-# Run the Flask App
+# Run the Flask App on azure
 # ----------------------------------------------------------------
 if __name__ == "__main__":
     try:
