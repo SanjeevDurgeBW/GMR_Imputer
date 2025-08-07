@@ -696,6 +696,7 @@ def predict():
         # 3) Check if model pipeline is loaded
         if model_pipeline is None:
             logger.warning("Model pipeline not loaded in memory. Aborting.")
+            logger.warning("Model pipeline not loaded in memory.")
             flash("Model pipeline not loaded in memory.", "danger")
             return redirect(url_for('home'))
 
