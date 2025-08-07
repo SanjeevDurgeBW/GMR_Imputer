@@ -636,6 +636,9 @@ def sync_load_model_pipeline():
     global model_pipeline
     try:
         ensure_model_directory()
+        if not os.path.exists(MODEL_PATH):
+            logger.error(f"Model file not found at {MODEL_PATH}")
+            raise FileNotFoundError(f"Model file not found at {MODEL_PATH}")
         model_pipeline = joblib.load(MODEL_PATH)
         logger.info("Model pipeline loaded into memory.")
     except Exception as e:
