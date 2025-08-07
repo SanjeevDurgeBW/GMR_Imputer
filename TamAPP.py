@@ -814,14 +814,17 @@ def preprocess_input_data(df):
 #         logger.error(f"Application failed to start: {e}\n{traceback.format_exc()}")
 #         sys.exit(1)
 
+try:
+    ensure_model_directory()
+    logger.info("Downloading and verifying model at startup...")
+    sync_download_and_verify_model()
+    logger.info("Loading model pipeline at startup...")
+    sync_load_model_pipeline()
+except Exception as e:
+    logger.error(f"Application failed to start: {e}\n{traceback.format_exc()}")
+    # Optionally: raise
+
+
+
 if __name__ == "__main__":
-    try:
-        ensure_model_directory()
-        logger.info("Downloading and verifying model at startup...")
-        sync_download_and_verify_model()
-        logger.info("Loading model pipeline at startup...")
-        sync_load_model_pipeline()
-        app.run(host="0.0.0.0", port=5000)
-    except Exception as e:
-        logger.error(f"Application failed to start: {e}\n{traceback.format_exc()}")
-        sys.exit(1)
+    app.run(host="0.0.0.0", port=5000)
