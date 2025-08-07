@@ -616,6 +616,31 @@ async def async_download_and_verify_model():
         logger.error(f"Error in async_download_and_verify_model: {e}\n{traceback.format_exc()}")
         raise
 
+
+def sync_download_and_verify_model():
+    """
+    Synchronously download and verify the model from Azure Blob Storage.
+    """
+    import asyncio
+    try:
+        asyncio.run(async_download_and_verify_model())
+    except Exception as e:
+        logger.error(f"Failed to download/verify model at startup: {e}\n{traceback.format_exc()}")
+        raise
+
+
+def sync_load_model_pipeline():
+    """
+    Synchronously load the model pipeline into memory.
+    """
+    global model_pipeline
+    try:
+        ensure_model_directory()
+        model_pipeline = joblib.load(MODEL_PATH)
+        logger.info("Model pipeline loaded into memory.")
+    except Exception as e:
+        logger.error(f"Failed to load model pipeline: {e}\n{traceback.format_exc()}")
+        raise
 # ----------------------------------------------------------------
 # Load the Trained Imputer at Startup
 # ----------------------------------------------------------------
@@ -696,7 +721,6 @@ def predict():
         # 3) Check if model pipeline is loaded
         if model_pipeline is None:
             logger.warning("Model pipeline not loaded in memory. Aborting.")
-            logger.warning("Model pipeline not loaded in memory.")
             flash("Model pipeline not loaded in memory.", "danger")
             return redirect(url_for('home'))
 
@@ -776,12 +800,24 @@ def preprocess_input_data(df):
 # ----------------------------------------------------------------
 # Run the Flask Apps
 # ----------------------------------------------------------------
+# if __name__ == "__main__":
+#     try:
+#         ensure_model_directory()
+#         print(f"Model directory is ready at '{MODEL_DIR}'.")
+#         logger.info("Loading model pipeline once at startup...")
+#         asyncio.run(async_load_model_pipeline())
+#         app.run(host="0.0.0.0", port=5000)
+#     except Exception as e:
+#         logger.error(f"Application failed to start: {e}\n{traceback.format_exc()}")
+#         sys.exit(1)
+
 if __name__ == "__main__":
     try:
         ensure_model_directory()
-        print(f"Model directory is ready at '{MODEL_DIR}'.")
-        logger.info("Loading model pipeline once at startup...")
-        asyncio.run(async_load_model_pipeline())
+        logger.info("Downloading and verifying model at startup...")
+        sync_download_and_verify_model()
+        logger.info("Loading model pipeline at startup...")
+        sync_load_model_pipeline()
         app.run(host="0.0.0.0", port=5000)
     except Exception as e:
         logger.error(f"Application failed to start: {e}\n{traceback.format_exc()}")
