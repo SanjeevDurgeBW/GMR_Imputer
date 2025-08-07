@@ -498,7 +498,8 @@ logger.info(f"app.secret_key has been set to: {app.secret_key}")
 # ----------------------------------------------------------------
 # Global Paths
 # ----------------------------------------------------------------
-HOME_DIR = os.environ.get('HOME', '/home')  # On Azure App Service, /home is persistent
+# HOME_DIR = os.environ.get('HOME', '/home')  # On Azure App Service, /home is persistent
+HOME_DIR = os.environ.get('ROOT', '/root')  # On Azure App Service, /root is persistent
 MODEL_DIR = os.path.join(HOME_DIR, 'models')
 MODEL_PATH = os.path.join(MODEL_DIR, 'Tam_eheatingV5.pkl')
 CHECKSUM_PATH = os.path.join(MODEL_DIR, 'Tam_eheatingV5.pkl.sha256')
@@ -720,6 +721,16 @@ def predict():
         input_data = preprocess_input_data(input_data)
         logger.info("Preprocessed input data to match training.")
         logger.info(f"After preprocessing, columns are: {list(input_data.columns)}")
+# ----------------------------------------- NEW CODE -----------------------------------------
+        try:
+            ensure_model_directory()
+            logger.info("Downloading and verifying model at startup...")
+            sync_download_and_verify_model()
+            logger.info("Loading model pipeline at startup...")
+            sync_load_model_pipeline()
+        except Exception as e:
+            logger.error(f"Application failed to start: {e}\n{traceback.format_exc()}")
+# ----------------------------------------- NEW CODE -----------------------------------------
 
         # 3) Check if model pipeline is loaded
         if model_pipeline is None:
@@ -814,14 +825,14 @@ def preprocess_input_data(df):
 #         logger.error(f"Application failed to start: {e}\n{traceback.format_exc()}")
 #         sys.exit(1)
 
-try:
-    ensure_model_directory()
-    logger.info("Downloading and verifying model at startup...")
-    sync_download_and_verify_model()
-    logger.info("Loading model pipeline at startup...")
-    sync_load_model_pipeline()
-except Exception as e:
-    logger.error(f"Application failed to start: {e}\n{traceback.format_exc()}")
+# try:
+#     ensure_model_directory()
+#     logger.info("Downloading and verifying model at startup...")
+#     sync_download_and_verify_model()
+#     logger.info("Loading model pipeline at startup...")
+#     sync_load_model_pipeline()
+# except Exception as e:
+#     logger.error(f"Application failed to start: {e}\n{traceback.format_exc()}")
     # Optionally: raise
 
 
