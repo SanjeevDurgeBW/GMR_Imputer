@@ -1,18 +1,17 @@
-<!-- templates/index.html -->
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Heating Consumption Prediction</title>
+    <title> Data Imputation </title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-    <!-- Bootstrap CSS for styling (Optional but recommended) -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Select2 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 </head>
 <body>
     <div class="container mt-5">
-        <h1 class="text-center">Heating Consumption Prediction</h1>
-        <p class="text-center">Upload an Excel file to receive heating consumption predictions.</p>
+        <h1 class="text-center">Data Imputation</h1>
+        <p class="text-center">Select a product and upload an Excel file to receive predictions.</p>
 
         <!-- Flash Messages -->
         {% with messages = get_flashed_messages(with_categories=true) %}
@@ -30,6 +29,17 @@
             <div class="col-md-6">
                 <form action="{{ url_for('predict') }}" method="post" enctype="multipart/form-data">
                     <div class="mb-3">
+                        <label for="product" class="form-label">Select Product</label>
+                        <select class="form-select" id="product" name="product" required>
+                            <option value="">-- Select a product --</option>
+                            <option value="tam_eheating">Tam Eheating</option>
+                            <option value="lv_turbo">Light Vehicle Turbo</option>
+                            <option value="lv_egr">Light Vehicle EGR</option>
+                            <option value="cv_turbo">Commercial Vehicle Turbo</option>
+                            <option value="cv_egr">Commercial Vehicle EGR</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
                         <label for="file" class="form-label">Select Excel File</label>
                         <input class="form-control" type="file" id="file" name="file" accept=".xlsx" required>
                     </div>
@@ -39,7 +49,21 @@
         </div>
     </div>
 
-    <!-- Bootstrap JS for interactivity (Optional) -->
+    <!-- jQuery (required for Select2) -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Select2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script>
+        // Initialize Select2 on the product dropdown
+        $(document).ready(function() {
+            $('#product').select2({
+                placeholder: "Search or select a product",
+                allowClear: true,
+                width: '100%'
+            });
+        });
+    </script>
 </body>
 </html>
