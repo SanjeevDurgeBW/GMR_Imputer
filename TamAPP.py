@@ -148,6 +148,39 @@ def verify_checksum(model_path, checksum_path):
 # ----------------------------------------------------------------
 # Async Download with Retry
 # ----------------------------------------------------------------
+# @retry(
+#     reraise=True,
+#     stop=stop_after_attempt(5),
+#     wait=wait_exponential(multiplier=1, min=4, max=10),
+#     retry=retry_if_exception_type((EnvironmentError, FileNotFoundError, AzureError))
+# )
+# async def async_download_blob(container_name, blob_name, download_file_path):
+#     try:
+#         os.makedirs(os.path.dirname(download_file_path), exist_ok=True)
+
+#         connect_str = os.environ.get('AZURE_STORAGE_CONNECTION_STRING')
+#         if not connect_str:
+#             raise EnvironmentError("AZURE_STORAGE_CONNECTION_STRING is not set.")
+
+#         blob_service_client = BlobServiceClient.from_connection_string(connect_str)
+#         blob_client = blob_service_client.get_blob_client(container=container_name, blob=blob_name)
+
+#         exists = await blob_client.exists()
+#         if not exists:
+#             raise FileNotFoundError(f"Blob '{blob_name}' not found in container '{container_name}'.")
+
+#         logger.info(f"Starting download of blob '{blob_name}' from container '{container_name}'.")
+#         async with aiofiles.open(download_file_path, "wb") as download_file:
+#             download_stream = await blob_client.download_blob()
+#             async for chunk in download_stream.chunks():
+#                 await download_file.write(chunk)
+
+#         logger.info(f"Downloaded blob '{blob_name}' to '{download_file_path}'.")
+#     except Exception as e:
+#         logger.error(f"Error downloading blob '{blob_name}': {e}\n{traceback.format_exc()}")
+#         raise
+# -------------------------new code------------------------
+
 @retry(
     reraise=True,
     stop=stop_after_attempt(5),
@@ -162,23 +195,26 @@ async def async_download_blob(container_name, blob_name, download_file_path):
         if not connect_str:
             raise EnvironmentError("AZURE_STORAGE_CONNECTION_STRING is not set.")
 
-        blob_service_client = BlobServiceClient.from_connection_string(connect_str)
-        blob_client = blob_service_client.get_blob_client(container=container_name, blob=blob_name)
+        # Use async context manager to ensure session is closed
+        async with BlobServiceClient.from_connection_string(connect_str) as blob_service_client:
+            blob_client = blob_service_client.get_blob_client(container=container_name, blob=blob_name)
 
-        exists = await blob_client.exists()
-        if not exists:
-            raise FileNotFoundError(f"Blob '{blob_name}' not found in container '{container_name}'.")
+            exists = await blob_client.exists()
+            if not exists:
+                raise FileNotFoundError(f"Blob '{blob_name}' not found in container '{container_name}'.")
 
-        logger.info(f"Starting download of blob '{blob_name}' from container '{container_name}'.")
-        async with aiofiles.open(download_file_path, "wb") as download_file:
-            download_stream = await blob_client.download_blob()
-            async for chunk in download_stream.chunks():
-                await download_file.write(chunk)
+            logger.info(f"Starting download of blob '{blob_name}' from container '{container_name}'.")
+            async with aiofiles.open(download_file_path, "wb") as download_file:
+                download_stream = await blob_client.download_blob()
+                async for chunk in download_stream.chunks():
+                    await download_file.write(chunk)
 
         logger.info(f"Downloaded blob '{blob_name}' to '{download_file_path}'.")
     except Exception as e:
         logger.error(f"Error downloading blob '{blob_name}': {e}\n{traceback.format_exc()}")
         raise
+# -------------------------new code------------------------
+
 
 # ----------------------------------------------------------------
 # Download & Verify Model
@@ -203,13 +239,13 @@ async def async_download_and_verify_model(product):
         raise
 # --------------new code--------------------------
 
-def sync_download_and_verify_model():
+def sync_download_and_verify_model(product):
     """
     Synchronously download and verify the model from Azure Blob Storage.
     """
     import asyncio
     try:
-        asyncio.run(async_download_and_verify_model())
+        asyncio.run(async_download_and_verify_model(product))
     except Exception as e:
         logger.error(f"Failed to download/verify model at startup: {e}\n{traceback.format_exc()}")
         raise
@@ -248,7 +284,7 @@ async def async_load_model_pipeline(product):
         try:
             ensure_model_directory()
             logger.info("Starting asynchronous model download and verification...")
-            await async_download_and_verify_model()
+            await async_download_and_verify_model(product)
 
             logger.info(f"Loading model from '{product_model_map['model_path']}'...")
             loop = asyncio.get_event_loop()
@@ -320,12 +356,12 @@ def predict():
 # ----------------------------------------- NEW CODE -----------------------------------------
         try:
             ensure_model_directory()
-            logger.info("Downloading and verifying model at startup...")
-            sync_download_and_verify_model()
-            logger.info("Loading model pipeline at startup...")
+            logger.info("Downloading and verifying model...")
+            sync_download_and_verify_model(product)
+            logger.info("Loading model pipeline...")
             sync_load_model_pipeline()
         except Exception as e:
-            logger.error(f"Application failed to start: {e}\n{traceback.format_exc()}")
+            logger.error(f"Application failed to load model: {e}\n{traceback.format_exc()}")
 # ----------------------------------------- NEW CODE -----------------------------------------
 
         # 3) Check if model pipeline is loaded
