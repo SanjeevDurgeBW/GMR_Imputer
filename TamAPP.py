@@ -359,7 +359,7 @@ def predict():
             logger.info("Downloading and verifying model...")
             sync_download_and_verify_model(product)
             logger.info("Loading model pipeline...")
-            sync_load_model_pipeline()
+            sync_load_model_pipeline(product)
         except Exception as e:
             logger.error(f"Application failed to load model: {e}\n{traceback.format_exc()}")
 # ----------------------------------------- NEW CODE -----------------------------------------
