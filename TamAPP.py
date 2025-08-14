@@ -42,8 +42,8 @@ logger.info(f"app.secret_key has been set to: {app.secret_key}")
 # Products Model Map
 #---------------------------------------------------
 # This is a dictionary mapping product names to their respective model classes.
-# HOME_DIR = os.environ.get('ROOT', '/root')  # On Azure App Service, /root is persistent
-HOME_DIR = os.environ.get('HOME', '/home')
+HOME_DIR = os.environ.get('ROOT', '/root')  # On Azure App Service, /root is persistent
+# HOME_DIR = os.environ.get('HOME', '/home')
 MODEL_DIR = os.path.join(HOME_DIR, 'models')
 PRODUCT_MODEL_MAP = {
     "lv_turbo": {
