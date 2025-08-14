@@ -43,6 +43,7 @@ logger.info(f"app.secret_key has been set to: {app.secret_key}")
 #---------------------------------------------------
 # This is a dictionary mapping product names to their respective model classes.
 HOME_DIR = os.environ.get('ROOT', '/root')  # On Azure App Service, /root is persistent
+# HOME_DIR = os.environ.get('HOME', '/home')
 MODEL_DIR = os.path.join(HOME_DIR, 'models')
 PRODUCT_MODEL_MAP = {
     "lv_turbo": {
@@ -82,13 +83,6 @@ PRODUCT_MODEL_MAP = {
     }
 }
 
-# ----------------------------------------------------------------
-# Global Paths
-# ----------------------------------------------------------------
-# HOME_DIR = os.environ.get('HOME', '/home')  # On Azure App Service, /home is persistent
-# MODEL_DIR = os.path.join(HOME_DIR, 'models')
-# MODEL_PATH = os.path.join(MODEL_DIR, 'Tam_eheatingV5.pkl')
-# CHECKSUM_PATH = os.path.join(MODEL_DIR, 'Tam_eheatingV5.pkl.sha256')
 
 # ----------------------------------------------------------------
 # Lock and Global Model Pipeline
@@ -239,34 +233,34 @@ async def async_download_and_verify_model(product):
         raise
 # --------------new code--------------------------
 
-def sync_download_and_verify_model(product):
-    """
-    Synchronously download and verify the model from Azure Blob Storage.
-    """
-    import asyncio
-    try:
-        asyncio.run(async_download_and_verify_model(product))
-    except Exception as e:
-        logger.error(f"Failed to download/verify model at startup: {e}\n{traceback.format_exc()}")
-        raise
+# def sync_download_and_verify_model(product):
+#     """
+#     Synchronously download and verify the model from Azure Blob Storage.
+#     """
+#     import asyncio
+#     try:
+#         asyncio.run(async_download_and_verify_model(product))
+#     except Exception as e:
+#         logger.error(f"Failed to download/verify model at startup: {e}\n{traceback.format_exc()}")
+#         raise
 
 
-def sync_load_model_pipeline(product):
-    """
-    Synchronously load the model pipeline into memory.
-    """
-    global model_pipeline
-    product_model_map = PRODUCT_MODEL_MAP[product]
-    try:
-        ensure_model_directory()
-        if not os.path.exists(product_model_map['model_path']):
-            logger.error(f"Model file not found at {product_model_map['model_path']}")
-            raise FileNotFoundError(f"Model file not found at {product_model_map['model_path']}")
-        model_pipeline = joblib.load(product_model_map['model_path'])
-        logger.info("Model pipeline loaded into memory.")
-    except Exception as e:
-        logger.error(f"Failed to load model pipeline: {e}\n{traceback.format_exc()}")
-        raise
+# def sync_load_model_pipeline(product):
+#     """
+#     Synchronously load the model pipeline into memory.
+#     """
+#     global model_pipeline
+#     product_model_map = PRODUCT_MODEL_MAP[product]
+#     try:
+#         ensure_model_directory()
+#         if not os.path.exists(product_model_map['model_path']):
+#             logger.error(f"Model file not found at {product_model_map['model_path']}")
+#             raise FileNotFoundError(f"Model file not found at {product_model_map['model_path']}")
+#         model_pipeline = joblib.load(product_model_map['model_path'])
+#         logger.info("Model pipeline loaded into memory.")
+#     except Exception as e:
+#         logger.error(f"Failed to load model pipeline: {e}\n{traceback.format_exc()}")
+#         raise
 # ----------------------------------------------------------------
 # Load the Trained Imputer at Startup
 # ----------------------------------------------------------------
@@ -353,12 +347,21 @@ def predict():
         logger.info(f"After preprocessing, columns are: {list(input_data.columns)}")
 
         # ----------------------------------------- NEW CODE -----------------------------------------
+        # try:
+        #     ensure_model_directory()
+        #     logger.info("Downloading and verifying model...")
+        #     sync_download_and_verify_model(product)
+        #     logger.info("Loading model pipeline...")
+        #     sync_load_model_pipeline(product)
+        # except Exception as e:
+        #     logger.error(f"Application failed to load model: {e}\n{traceback.format_exc()}")
+
+
         try:
             ensure_model_directory()
             logger.info("Downloading and verifying model...")
-            sync_download_and_verify_model(product)
+            asyncio.run(async_load_model_pipeline(product))
             logger.info("Loading model pipeline...")
-            sync_load_model_pipeline()
         except Exception as e:
             logger.error(f"Application failed to load model: {e}\n{traceback.format_exc()}")
 # ----------------------------------------- NEW CODE -----------------------------------------
