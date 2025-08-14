@@ -352,14 +352,13 @@ def predict():
         logger.info("Preprocessed input data to match training.")
         logger.info(f"After preprocessing, columns are: {list(input_data.columns)}")
 
-
-# ----------------------------------------- NEW CODE -----------------------------------------
+        # ----------------------------------------- NEW CODE -----------------------------------------
         try:
             ensure_model_directory()
             logger.info("Downloading and verifying model...")
             sync_download_and_verify_model(product)
             logger.info("Loading model pipeline...")
-            sync_load_model_pipeline(product)
+            sync_load_model_pipeline()
         except Exception as e:
             logger.error(f"Application failed to load model: {e}\n{traceback.format_exc()}")
 # ----------------------------------------- NEW CODE -----------------------------------------
