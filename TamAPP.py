@@ -309,6 +309,8 @@ def health():
     """
     return jsonify({"status": "OK"}), 200
 
+model_cache = {}
+
 @app.route('/predict', methods=['POST'])
 def predict():
     product = request.form.get('product')
@@ -335,11 +337,21 @@ def predict():
         return redirect(url_for('home'))
 
     try:
-        # Download and verify the model for the selected product
-        asyncio.run(async_download_and_verify_model(product))
+        # # Download and verify the model for the selected product
+        # asyncio.run(async_download_and_verify_model(product))
 
-        # Load the model for the selected product
-        model_pipeline = joblib.load(product_model_map["model_path"])
+        # # Load the model for the selected product
+        # model_pipeline = joblib.load(product_model_map["model_path"])
+
+         # Check if model is already cached
+        model_pipeline = model_cache.get(product)
+        if model_pipeline is None:
+            # Download and verify the model for the selected product
+            asyncio.run(async_download_and_verify_model(product))
+            # Load and cache the model
+            model_pipeline = joblib.load(product_model_map["model_path"])
+            model_cache[product] = model_pipeline
+            logger.info(f"Model for '{product}' loaded and cached.")
 
         # Read Excel file into a DataFrame
         input_data = pd.read_excel(uploaded_file, engine="openpyxl")
@@ -354,14 +366,14 @@ def predict():
 
 
 # ----------------------------------------- NEW CODE -----------------------------------------
-        try:
-            ensure_model_directory()
-            logger.info("Downloading and verifying model...")
-            sync_download_and_verify_model(product)
-            logger.info("Loading model pipeline...")
-            sync_load_model_pipeline(product)
-        except Exception as e:
-            logger.error(f"Application failed to load model: {e}\n{traceback.format_exc()}")
+        # try:
+        #     ensure_model_directory()
+        #     logger.info("Downloading and verifying model...")
+        #     sync_download_and_verify_model(product)
+        #     logger.info("Loading model pipeline...")
+        #     sync_load_model_pipeline(product)
+        # except Exception as e:
+        #     logger.error(f"Application failed to load model: {e}\n{traceback.format_exc()}")
 # ----------------------------------------- NEW CODE -----------------------------------------
 
         # 3) Check if model pipeline is loaded
