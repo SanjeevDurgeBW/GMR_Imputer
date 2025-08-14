@@ -367,6 +367,7 @@ async def predict():
         pipeline = model_pipeline.get(product)
         if pipeline is None:
             logger.warning("Model pipeline not loaded in memory. Aborting.")
+            logger.warning("Model pipeline not in memory. Aborting.")
             flash("Model pipeline not loaded in memory.", "danger")
             return redirect(url_for('home'))
 
