@@ -88,7 +88,8 @@ PRODUCT_MODEL_MAP = {
 # Lock and Global Model Pipeline
 # ----------------------------------------------------------------
 model_lock = asyncio.Lock()
-model_pipeline = None  # will store the loaded SequentialImputer
+# model_pipeline = None  # will store the loaded SequentialImputer
+model_pipeline = {}  # product -> pipeline
 
 # ----------------------------------------------------------------
 # Ensure Model Directory
@@ -264,16 +265,41 @@ async def async_download_and_verify_model(product):
 # ----------------------------------------------------------------
 # Load the Trained Imputer at Startup
 # ----------------------------------------------------------------
+# async def async_load_model_pipeline(product):
+#     global model_pipeline
+#     product_model_map = PRODUCT_MODEL_MAP[product]
+#     if model_pipeline is not None:
+#         logger.info("Model pipeline already loaded. Skipping download.")
+#         return
+
+#     async with model_lock:
+#         if model_pipeline is not None:
+#             logger.info("Model pipeline already loaded inside lock. Skipping download.")
+#             return
+#         try:
+#             ensure_model_directory()
+#             logger.info("Starting asynchronous model download and verification...")
+#             await async_download_and_verify_model(product)
+
+#             logger.info(f"Loading model from '{product_model_map['model_path']}'...")
+#             loop = asyncio.get_event_loop()
+#             model_pipeline = await loop.run_in_executor(None, joblib.load, product_model_map['model_path'])
+#             logger.info("Model pipeline loaded successfully.")
+#         except Exception as e:
+#             logger.error(f"Error loading model: {e}\n{traceback.format_exc()}")
+#             raise
+
+
 async def async_load_model_pipeline(product):
     global model_pipeline
     product_model_map = PRODUCT_MODEL_MAP[product]
-    if model_pipeline is not None:
-        logger.info("Model pipeline already loaded. Skipping download.")
+    if product in model_pipeline and model_pipeline[product] is not None:
+        logger.info(f"Model pipeline for '{product}' already loaded. Skipping download.")
         return
 
     async with model_lock:
-        if model_pipeline is not None:
-            logger.info("Model pipeline already loaded inside lock. Skipping download.")
+        if product in model_pipeline and model_pipeline[product] is not None:
+            logger.info(f"Model pipeline for '{product}' already loaded inside lock. Skipping download.")
             return
         try:
             ensure_model_directory()
@@ -282,7 +308,7 @@ async def async_load_model_pipeline(product):
 
             logger.info(f"Loading model from '{product_model_map['model_path']}'...")
             loop = asyncio.get_event_loop()
-            model_pipeline = await loop.run_in_executor(None, joblib.load, product_model_map['model_path'])
+            model_pipeline[product] = await loop.run_in_executor(None, joblib.load, product_model_map['model_path'])
             logger.info("Model pipeline loaded successfully.")
         except Exception as e:
             logger.error(f"Error loading model: {e}\n{traceback.format_exc()}")
@@ -304,7 +330,8 @@ def health():
     return jsonify({"status": "OK"}), 200
 
 @app.route('/predict', methods=['POST'])
-def predict():
+async def predict():
+
     product = request.form.get('product')
     if not product or product not in PRODUCT_MODEL_MAP:
         flash("Invalid product selected.", "danger")
@@ -329,11 +356,19 @@ def predict():
         return redirect(url_for('home'))
 
     try:
-        # Download and verify the model for the selected product
-        asyncio.run(async_download_and_verify_model(product))
+        # # Download and verify the model for the selected product
+        # asyncio.run(async_download_and_verify_model(product))
 
-        # Load the model for the selected product
-        model_pipeline = joblib.load(product_model_map["model_path"])
+        # # Load the model for the selected product
+        # model_pipeline = joblib.load(product_model_map["model_path"])
+
+        # Ensure model is loaded and verified for this product (async, per-product)
+        await async_load_model_pipeline(product)
+        pipeline = model_pipeline.get(product)
+        if pipeline is None:
+            logger.warning("Model pipeline not loaded in memory. Aborting.")
+            flash("Model pipeline not loaded in memory.", "danger")
+            return redirect(url_for('home'))
 
         # Read Excel file into a DataFrame
         input_data = pd.read_excel(uploaded_file, engine="openpyxl")
@@ -357,25 +392,30 @@ def predict():
         #     logger.error(f"Application failed to load model: {e}\n{traceback.format_exc()}")
 
 
-        try:
-            ensure_model_directory()
-            logger.info("Downloading and verifying model...")
-            asyncio.run(async_load_model_pipeline(product))
-            logger.info("Loading model pipeline...")
-        except Exception as e:
-            logger.error(f"Application failed to load model: {e}\n{traceback.format_exc()}")
+        # try:
+        #     ensure_model_directory()
+        #     logger.info("Downloading and verifying model...")
+        #     asyncio.run(async_load_model_pipeline(product))
+        #     logger.info("Loading model pipeline...")
+        # except Exception as e:
+        #     logger.error(f"Application failed to load model: {e}\n{traceback.format_exc()}")
 # ----------------------------------------- NEW CODE -----------------------------------------
 
         # 3) Check if model pipeline is loaded
-        if model_pipeline is None:
-            logger.warning("Model pipeline not loaded in memory. Aborting.")
-            flash("Model pipeline not loaded in memory.", "danger")
-            return redirect(url_for('home'))
+        # if model_pipeline is None:
+        #     logger.warning("Model pipeline not loaded in memory. Aborting.")
+        #     flash("Model pipeline not loaded in memory.", "danger")
+        #     return redirect(url_for('home'))
 
         # Impute data
-        logger.info("Imputing data with model_pipeline.transform(...)")
-        imputed_data = model_pipeline.transform(input_data)
+        # logger.info("Imputing data with model_pipeline.transform(...)")
+        # imputed_data = model_pipeline.transform(input_data)
+        # logger.info("Data imputation completed successfully.")
+# ------------new code ---------------------
+        loop = asyncio.get_running_loop()
+        imputed_data = await loop.run_in_executor(None, pipeline.transform, input_data)
         logger.info("Data imputation completed successfully.")
+# ------------new code ---------------------
 
         # # Save the imputed DataFrame as 'predictions.xlsx'
         # output_file = 'predictions.xlsx'
