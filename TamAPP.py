@@ -88,8 +88,8 @@ PRODUCT_MODEL_MAP = {
 # Lock and Global Model Pipeline
 # ----------------------------------------------------------------
 model_lock = asyncio.Lock()
-# model_pipeline = None  # will store the loaded SequentialImputer
-model_pipeline = {}  # product -> pipeline
+model_pipeline = None  # will store the loaded SequentialImputer
+# model_pipeline = {}  # product -> pipeline
 
 # ----------------------------------------------------------------
 # Ensure Model Directory
@@ -143,39 +143,6 @@ def verify_checksum(model_path, checksum_path):
 # ----------------------------------------------------------------
 # Async Download with Retry
 # ----------------------------------------------------------------
-# @retry(
-#     reraise=True,
-#     stop=stop_after_attempt(5),
-#     wait=wait_exponential(multiplier=1, min=4, max=10),
-#     retry=retry_if_exception_type((EnvironmentError, FileNotFoundError, AzureError))
-# )
-# async def async_download_blob(container_name, blob_name, download_file_path):
-#     try:
-#         os.makedirs(os.path.dirname(download_file_path), exist_ok=True)
-
-#         connect_str = os.environ.get('AZURE_STORAGE_CONNECTION_STRING')
-#         if not connect_str:
-#             raise EnvironmentError("AZURE_STORAGE_CONNECTION_STRING is not set.")
-
-#         blob_service_client = BlobServiceClient.from_connection_string(connect_str)
-#         blob_client = blob_service_client.get_blob_client(container=container_name, blob=blob_name)
-
-#         exists = await blob_client.exists()
-#         if not exists:
-#             raise FileNotFoundError(f"Blob '{blob_name}' not found in container '{container_name}'.")
-
-#         logger.info(f"Starting download of blob '{blob_name}' from container '{container_name}'.")
-#         async with aiofiles.open(download_file_path, "wb") as download_file:
-#             download_stream = await blob_client.download_blob()
-#             async for chunk in download_stream.chunks():
-#                 await download_file.write(chunk)
-
-#         logger.info(f"Downloaded blob '{blob_name}' to '{download_file_path}'.")
-#     except Exception as e:
-#         logger.error(f"Error downloading blob '{blob_name}': {e}\n{traceback.format_exc()}")
-#         raise
-# -------------------------new code------------------------
-
 @retry(
     reraise=True,
     stop=stop_after_attempt(5),
@@ -190,24 +157,57 @@ async def async_download_blob(container_name, blob_name, download_file_path):
         if not connect_str:
             raise EnvironmentError("AZURE_STORAGE_CONNECTION_STRING is not set.")
 
-        # Use async context manager to ensure session is closed
-        async with BlobServiceClient.from_connection_string(connect_str) as blob_service_client:
-            blob_client = blob_service_client.get_blob_client(container=container_name, blob=blob_name)
+        blob_service_client = BlobServiceClient.from_connection_string(connect_str)
+        blob_client = blob_service_client.get_blob_client(container=container_name, blob=blob_name)
 
-            exists = await blob_client.exists()
-            if not exists:
-                raise FileNotFoundError(f"Blob '{blob_name}' not found in container '{container_name}'.")
+        exists = await blob_client.exists()
+        if not exists:
+            raise FileNotFoundError(f"Blob '{blob_name}' not found in container '{container_name}'.")
 
-            logger.info(f"Starting download of blob '{blob_name}' from container '{container_name}'.")
-            async with aiofiles.open(download_file_path, "wb") as download_file:
-                download_stream = await blob_client.download_blob()
-                async for chunk in download_stream.chunks():
-                    await download_file.write(chunk)
+        logger.info(f"Starting download of blob '{blob_name}' from container '{container_name}'.")
+        async with aiofiles.open(download_file_path, "wb") as download_file:
+            download_stream = await blob_client.download_blob()
+            async for chunk in download_stream.chunks():
+                await download_file.write(chunk)
 
         logger.info(f"Downloaded blob '{blob_name}' to '{download_file_path}'.")
     except Exception as e:
         logger.error(f"Error downloading blob '{blob_name}': {e}\n{traceback.format_exc()}")
         raise
+# -------------------------new code------------------------
+
+# @retry(
+#     reraise=True,
+#     stop=stop_after_attempt(5),
+#     wait=wait_exponential(multiplier=1, min=4, max=10),
+#     retry=retry_if_exception_type((EnvironmentError, FileNotFoundError, AzureError))
+# )
+# async def async_download_blob(container_name, blob_name, download_file_path):
+#     try:
+#         os.makedirs(os.path.dirname(download_file_path), exist_ok=True)
+
+#         connect_str = os.environ.get('AZURE_STORAGE_CONNECTION_STRING')
+#         if not connect_str:
+#             raise EnvironmentError("AZURE_STORAGE_CONNECTION_STRING is not set.")
+
+#         # Use async context manager to ensure session is closed
+#         async with BlobServiceClient.from_connection_string(connect_str) as blob_service_client:
+#             blob_client = blob_service_client.get_blob_client(container=container_name, blob=blob_name)
+
+#             exists = await blob_client.exists()
+#             if not exists:
+#                 raise FileNotFoundError(f"Blob '{blob_name}' not found in container '{container_name}'.")
+
+#             logger.info(f"Starting download of blob '{blob_name}' from container '{container_name}'.")
+#             async with aiofiles.open(download_file_path, "wb") as download_file:
+#                 download_stream = await blob_client.download_blob()
+#                 async for chunk in download_stream.chunks():
+#                     await download_file.write(chunk)
+
+#         logger.info(f"Downloaded blob '{blob_name}' to '{download_file_path}'.")
+#     except Exception as e:
+#         logger.error(f"Error downloading blob '{blob_name}': {e}\n{traceback.format_exc()}")
+#         raise
 # -------------------------new code------------------------
 
 
@@ -234,72 +234,47 @@ async def async_download_and_verify_model(product):
         raise
 # --------------new code--------------------------
 
-# def sync_download_and_verify_model(product):
-#     """
-#     Synchronously download and verify the model from Azure Blob Storage.
-#     """
-#     import asyncio
-#     try:
-#         asyncio.run(async_download_and_verify_model(product))
-#     except Exception as e:
-#         logger.error(f"Failed to download/verify model at startup: {e}\n{traceback.format_exc()}")
-#         raise
+def sync_download_and_verify_model(product):
+    """
+    Synchronously download and verify the model from Azure Blob Storage.
+    """
+    import asyncio
+    try:
+        asyncio.run(async_download_and_verify_model(product))
+    except Exception as e:
+        logger.error(f"Failed to download/verify model at startup: {e}\n{traceback.format_exc()}")
+        raise
 
 
-# def sync_load_model_pipeline(product):
-#     """
-#     Synchronously load the model pipeline into memory.
-#     """
-#     global model_pipeline
-#     product_model_map = PRODUCT_MODEL_MAP[product]
-#     try:
-#         ensure_model_directory()
-#         if not os.path.exists(product_model_map['model_path']):
-#             logger.error(f"Model file not found at {product_model_map['model_path']}")
-#             raise FileNotFoundError(f"Model file not found at {product_model_map['model_path']}")
-#         model_pipeline = joblib.load(product_model_map['model_path'])
-#         logger.info("Model pipeline loaded into memory.")
-#     except Exception as e:
-#         logger.error(f"Failed to load model pipeline: {e}\n{traceback.format_exc()}")
-#         raise
+def sync_load_model_pipeline(product):
+    """
+    Synchronously load the model pipeline into memory.
+    """
+    global model_pipeline
+    product_model_map = PRODUCT_MODEL_MAP[product]
+    try:
+        ensure_model_directory()
+        if not os.path.exists(product_model_map['model_path']):
+            logger.error(f"Model file not found at {product_model_map['model_path']}")
+            raise FileNotFoundError(f"Model file not found at {product_model_map['model_path']}")
+        model_pipeline = joblib.load(product_model_map['model_path'])
+        logger.info("Model pipeline loaded into memory.")
+    except Exception as e:
+        logger.error(f"Failed to load model pipeline: {e}\n{traceback.format_exc()}")
+        raise
 # ----------------------------------------------------------------
 # Load the Trained Imputer at Startup
 # ----------------------------------------------------------------
-# async def async_load_model_pipeline(product):
-#     global model_pipeline
-#     product_model_map = PRODUCT_MODEL_MAP[product]
-#     if model_pipeline is not None:
-#         logger.info("Model pipeline already loaded. Skipping download.")
-#         return
-
-#     async with model_lock:
-#         if model_pipeline is not None:
-#             logger.info("Model pipeline already loaded inside lock. Skipping download.")
-#             return
-#         try:
-#             ensure_model_directory()
-#             logger.info("Starting asynchronous model download and verification...")
-#             await async_download_and_verify_model(product)
-
-#             logger.info(f"Loading model from '{product_model_map['model_path']}'...")
-#             loop = asyncio.get_event_loop()
-#             model_pipeline = await loop.run_in_executor(None, joblib.load, product_model_map['model_path'])
-#             logger.info("Model pipeline loaded successfully.")
-#         except Exception as e:
-#             logger.error(f"Error loading model: {e}\n{traceback.format_exc()}")
-#             raise
-
-
 async def async_load_model_pipeline(product):
     global model_pipeline
     product_model_map = PRODUCT_MODEL_MAP[product]
-    if product in model_pipeline and model_pipeline[product] is not None:
-        logger.info(f"Model pipeline for '{product}' already loaded. Skipping download.")
+    if model_pipeline is not None:
+        logger.info("Model pipeline already loaded. Skipping download.")
         return
 
     async with model_lock:
-        if product in model_pipeline and model_pipeline[product] is not None:
-            logger.info(f"Model pipeline for '{product}' already loaded inside lock. Skipping download.")
+        if model_pipeline is not None:
+            logger.info("Model pipeline already loaded inside lock. Skipping download.")
             return
         try:
             ensure_model_directory()
@@ -308,11 +283,36 @@ async def async_load_model_pipeline(product):
 
             logger.info(f"Loading model from '{product_model_map['model_path']}'...")
             loop = asyncio.get_event_loop()
-            model_pipeline[product] = await loop.run_in_executor(None, joblib.load, product_model_map['model_path'])
+            model_pipeline = await loop.run_in_executor(None, joblib.load, product_model_map['model_path'])
             logger.info("Model pipeline loaded successfully.")
         except Exception as e:
             logger.error(f"Error loading model: {e}\n{traceback.format_exc()}")
             raise
+
+
+# async def async_load_model_pipeline(product):
+#     global model_pipeline
+#     product_model_map = PRODUCT_MODEL_MAP[product]
+#     if product in model_pipeline and model_pipeline[product] is not None:
+#         logger.info(f"Model pipeline for '{product}' already loaded. Skipping download.")
+#         return
+
+#     async with model_lock:
+#         if product in model_pipeline and model_pipeline[product] is not None:
+#             logger.info(f"Model pipeline for '{product}' already loaded inside lock. Skipping download.")
+#             return
+#         try:
+#             ensure_model_directory()
+#             logger.info("Starting asynchronous model download and verification...")
+#             await async_download_and_verify_model(product)
+
+#             logger.info(f"Loading model from '{product_model_map['model_path']}'...")
+#             loop = asyncio.get_event_loop()
+#             model_pipeline[product] = await loop.run_in_executor(None, joblib.load, product_model_map['model_path'])
+#             logger.info("Model pipeline loaded successfully.")
+#         except Exception as e:
+#             logger.error(f"Error loading model: {e}\n{traceback.format_exc()}")
+#             raise
 
 # ----------------------------------------------------------------
 # Flask Routes
@@ -330,8 +330,7 @@ def health():
     return jsonify({"status": "OK"}), 200
 
 @app.route('/predict', methods=['POST'])
-async def predict():
-
+def predict():
     product = request.form.get('product')
     if not product or product not in PRODUCT_MODEL_MAP:
         flash("Invalid product selected.", "danger")
@@ -356,20 +355,20 @@ async def predict():
         return redirect(url_for('home'))
 
     try:
-        # # Download and verify the model for the selected product
-        # asyncio.run(async_download_and_verify_model(product))
+        # Download and verify the model for the selected product
+        asyncio.run(async_download_and_verify_model(product))
 
-        # # Load the model for the selected product
-        # model_pipeline = joblib.load(product_model_map["model_path"])
+        # Load the model for the selected product
+        model_pipeline = joblib.load(product_model_map["model_path"])
 
         # Ensure model is loaded and verified for this product (async, per-product)
-        await async_load_model_pipeline(product)
-        pipeline = model_pipeline.get(product)
-        if pipeline is None:
-            logger.warning("Model pipeline not loaded in memory. Aborting.")
-            logger.warning("Model pipeline not in memory. Aborting.")
-            flash("Model pipeline not loaded in memory.", "danger")
-            return redirect(url_for('home'))
+        # await async_load_model_pipeline(product)
+        # asyncio.run(async_load_model_pipeline(product))
+        # pipeline = model_pipeline.get(product)
+        # if pipeline is None:
+        #     logger.warning("Model pipeline not loaded in memory. Aborting.")
+        #     flash("Model pipeline not loaded in memory.", "danger")
+        #     return redirect(url_for('home'))
 
         # Read Excel file into a DataFrame
         input_data = pd.read_excel(uploaded_file, engine="openpyxl")
@@ -383,14 +382,14 @@ async def predict():
         logger.info(f"After preprocessing, columns are: {list(input_data.columns)}")
 
         # ----------------------------------------- NEW CODE -----------------------------------------
-        # try:
-        #     ensure_model_directory()
-        #     logger.info("Downloading and verifying model...")
-        #     sync_download_and_verify_model(product)
-        #     logger.info("Loading model pipeline...")
-        #     sync_load_model_pipeline(product)
-        # except Exception as e:
-        #     logger.error(f"Application failed to load model: {e}\n{traceback.format_exc()}")
+        try:
+            ensure_model_directory()
+            logger.info("Downloading and verifying model...")
+            sync_download_and_verify_model(product)
+            logger.info("Loading model pipeline...")
+            sync_load_model_pipeline(product)
+        except Exception as e:
+            logger.error(f"Application failed to load model: {e}\n{traceback.format_exc()}")
 
 
         # try:
@@ -403,19 +402,19 @@ async def predict():
 # ----------------------------------------- NEW CODE -----------------------------------------
 
         # 3) Check if model pipeline is loaded
-        # if model_pipeline is None:
-        #     logger.warning("Model pipeline not loaded in memory. Aborting.")
-        #     flash("Model pipeline not loaded in memory.", "danger")
-        #     return redirect(url_for('home'))
+        if model_pipeline is None:
+            logger.warning("Model pipeline not loaded in memory. Aborting.")
+            flash("Model pipeline not loaded in memory.", "danger")
+            return redirect(url_for('home'))
 
         # Impute data
-        # logger.info("Imputing data with model_pipeline.transform(...)")
-        # imputed_data = model_pipeline.transform(input_data)
-        # logger.info("Data imputation completed successfully.")
-# ------------new code ---------------------
-        loop = asyncio.get_running_loop()
-        imputed_data = await loop.run_in_executor(None, pipeline.transform, input_data)
+        logger.info("Imputing data with model_pipeline.transform(...)")
+        imputed_data = model_pipeline.transform(input_data)
         logger.info("Data imputation completed successfully.")
+# ------------new code ---------------------
+        # loop = asyncio.get_running_loop()
+        # imputed_data = await loop.run_in_executor(None, pipeline.transform, input_data)
+        # logger.info("Data imputation completed successfully.")
 # ------------new code ---------------------
 
         # # Save the imputed DataFrame as 'predictions.xlsx'
@@ -482,8 +481,7 @@ def preprocess_input_data(df, drop_cols):
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8000)
-
+    app.run(host="0.0.0.0", port=5000)
 
 # import joblib
 # from flask import Flask, request, send_file, render_template, redirect, url_for, flash, jsonify
