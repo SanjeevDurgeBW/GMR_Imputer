@@ -48,8 +48,8 @@ logger.info(f"app.secret_key has been set to: {app.secret_key}")
 # Products Model Map
 #---------------------------------------------------
 # This is a dictionary mapping product names to their respective model classes.
-HOME_DIR = os.environ.get('ROOT', '/root')  # On Azure App Service, /root is persistent
-# HOME_DIR = os.environ.get('HOME', '/home')
+# HOME_DIR = os.environ.get('ROOT', '/root')  # On Azure App Service, /root is persistent
+HOME_DIR = os.environ.get('HOME', '/home')
 MODEL_DIR = os.path.join(HOME_DIR, 'models')
 PRODUCT_MODEL_MAP = {
     "lv_turbo": {
@@ -502,8 +502,8 @@ def preprocess_input_data(df, drop_cols):
 #         sys.exit(1)
 
 
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+# if __name__ == "__main__":
+#     app.run(host="0.0.0.0", port=5000)
 
 # import joblib
 # from flask import Flask, request, send_file, render_template, redirect, url_for, flash, jsonify
