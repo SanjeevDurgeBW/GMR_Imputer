@@ -69,18 +69,12 @@ PRODUCT_MODEL_MAP = {
         "drop_cols": 19
     },
     "cv_turbo": {
-        # "model_path": os.path.join(MODEL_DIR, "cv_turbo_model.pkl"),
-        # # "compressed_model_path": os.path.join(MODEL_DIR, "cv_turbo_model.pkl.gz"),
-        # "checksum_path": os.path.join(MODEL_DIR, "cv_turbo_model.pkl.sha256"),
-        # "blob_model": "cv_turbo_model.pkl",
-        # "blob_checksum": "cv_turbo_model.pkl.sha256",
-        # "drop_cols": 23
-        "model_path": os.path.join(MODEL_DIR, "lv_egr_model.pkl"),
-        # "compressed_model_path": os.path.join(MODEL_DIR, "lv_egr_model.pkl.gz"),
-        "checksum_path": os.path.join(MODEL_DIR, "lv_egr_model.pkl.sha256"),
-        "blob_model": "lv_egr_model.pkl",
-        "blob_checksum": "lv_egr_model.pkl.sha256",
-        "drop_cols": 19
+        "model_path": os.path.join(MODEL_DIR, "cv_turbo_model.pkl"),
+        # "compressed_model_path": os.path.join(MODEL_DIR, "cv_turbo_model.pkl.gz"),
+        "checksum_path": os.path.join(MODEL_DIR, "cv_turbo_model.pkl.sha256"),
+        "blob_model": "cv_turbo_model.pkl",
+        "blob_checksum": "cv_turbo_model.pkl.sha256",
+        "drop_cols": 23
     },
     "cv_egr": {
         "model_path": os.path.join(MODEL_DIR, "cv_egr_model.pkl"),
@@ -97,16 +91,7 @@ PRODUCT_MODEL_MAP = {
         "blob_model": "tam_eheating_model.pkl",
         "blob_checksum": "tam_eheating_model.pkl.sha256",
         "drop_cols": 19
-    },
-    # "dummy_cv_turbo": {
-    #     "model_path": os.path.join(MODEL_DIR, "lv_egr_model.pkl"),
-    #     # "compressed_model_path": os.path.join(MODEL_DIR, "lv_egr_model.pkl.gz"),
-    #     "checksum_path": os.path.join(MODEL_DIR, "lv_egr_model.pkl.sha256"),
-    #     "blob_model": "lv_egr_model.pkl",
-    #     "blob_checksum": "lv_egr_model.pkl.sha256",
-    #     "drop_cols": 19
-    # },
-    
+    }    
 }
 
 
@@ -406,6 +391,8 @@ def predict():
         #     return redirect(url_for('home'))
 
         # Read Excel file into a DataFrame
+        if product == "cv_turbo":
+            input_data = pd.read_excel(uploaded_file, sheet_name='Data', engine="openpyxl")
         input_data = pd.read_excel(uploaded_file, engine="openpyxl")
         logger.info("Received Excel file for imputation.")
         logger.info(f"RAW columns from uploaded Excel: {list(input_data.columns)}")
