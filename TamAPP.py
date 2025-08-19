@@ -19,14 +19,14 @@ from sequential_imputer import SequentialImputer
 # ----------------------------------------------------------------
 # Configure Logging
 # ----------------------------------------------------------------
-# logging.basicConfig(level=logging.INFO)
-# logger = logging.getLogger(__name__)
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s %(levelname)s %(name)s %(message)s",
-    handlers=[logging.StreamHandler(sys.stdout)]
-)
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+# logging.basicConfig(
+#     level=logging.INFO,
+#     format="%(asctime)s %(levelname)s %(name)s %(message)s",
+#     handlers=[logging.StreamHandler(sys.stdout)]
+# )
+# logger = logging.getLogger(__name__)
 
 # ----------------------------------------------------------------
 # Create the Flask app
@@ -391,8 +391,8 @@ def predict():
         #     return redirect(url_for('home'))
 
         # Read Excel file into a DataFrame
-        if product == "cv_turbo":
-            input_data = pd.read_excel(uploaded_file, sheet_name='Data', engine="openpyxl")
+        # if product == "cv_turbo":
+        #     input_data = pd.read_excel(uploaded_file, sheet_name='Data', engine="openpyxl")
         input_data = pd.read_excel(uploaded_file, engine="openpyxl")
         logger.info("Received Excel file for imputation.")
         logger.info(f"RAW columns from uploaded Excel: {list(input_data.columns)}")
