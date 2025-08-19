@@ -19,7 +19,13 @@ from sequential_imputer import SequentialImputer
 # ----------------------------------------------------------------
 # Configure Logging
 # ----------------------------------------------------------------
-logging.basicConfig(level=logging.INFO)
+# logging.basicConfig(level=logging.INFO)
+# logger = logging.getLogger(__name__)
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(name)s %(message)s",
+    handlers=[logging.StreamHandler(sys.stdout)]
+)
 logger = logging.getLogger(__name__)
 
 # ----------------------------------------------------------------
@@ -48,6 +54,7 @@ MODEL_DIR = os.path.join(HOME_DIR, 'models')
 PRODUCT_MODEL_MAP = {
     "lv_turbo": {
         "model_path": os.path.join(MODEL_DIR, "lv_turbo_model.pkl"),
+        # "compressed_model_path": os.path.join(MODEL_DIR, "lv_turbo_model.pkl.gz"),
         "checksum_path": os.path.join(MODEL_DIR, "lv_turbo_model.pkl.sha256"),
         "blob_model": "lv_turbo_model.pkl",
         "blob_checksum": "lv_turbo_model.pkl.sha256",
@@ -55,6 +62,7 @@ PRODUCT_MODEL_MAP = {
     },
     "lv_egr": {
         "model_path": os.path.join(MODEL_DIR, "lv_egr_model.pkl"),
+        # "compressed_model_path": os.path.join(MODEL_DIR, "lv_egr_model.pkl.gz"),
         "checksum_path": os.path.join(MODEL_DIR, "lv_egr_model.pkl.sha256"),
         "blob_model": "lv_egr_model.pkl",
         "blob_checksum": "lv_egr_model.pkl.sha256",
@@ -62,6 +70,7 @@ PRODUCT_MODEL_MAP = {
     },
     "cv_turbo": {
         "model_path": os.path.join(MODEL_DIR, "cv_turbo_model.pkl"),
+        # "compressed_model_path": os.path.join(MODEL_DIR, "cv_turbo_model.pkl.gz"),
         "checksum_path": os.path.join(MODEL_DIR, "cv_turbo_model.pkl.sha256"),
         "blob_model": "cv_turbo_model.pkl",
         "blob_checksum": "cv_turbo_model.pkl.sha256",
@@ -69,6 +78,7 @@ PRODUCT_MODEL_MAP = {
     },
     "cv_egr": {
         "model_path": os.path.join(MODEL_DIR, "cv_egr_model.pkl"),
+        # "compressed_model_path": os.path.join(MODEL_DIR, "cv_egr_model.pkl.gz"),
         "checksum_path": os.path.join(MODEL_DIR, "cv_egr_model.pkl.sha256"),
         "blob_model": "cv_egr_model.pkl",
         "blob_checksum": "cv_egr_model.pkl.sha256",
@@ -76,11 +86,21 @@ PRODUCT_MODEL_MAP = {
     },
     "tam_eheating": {
         "model_path": os.path.join(MODEL_DIR, "tam_eheating_model.pkl"),
+        # "compressed_model_path": os.path.join(MODEL_DIR, "tam_eheating_model.pkl.gz"),
         "checksum_path": os.path.join(MODEL_DIR, "tam_eheating_model.pkl.sha256"),
         "blob_model": "tam_eheating_model.pkl",
         "blob_checksum": "tam_eheating_model.pkl.sha256",
         "drop_cols": 19
-    }
+    },
+    "dummy_cv_turbo": {
+        "model_path": os.path.join(MODEL_DIR, "lv_egr_model.pkl"),
+        # "compressed_model_path": os.path.join(MODEL_DIR, "lv_egr_model.pkl.gz"),
+        "checksum_path": os.path.join(MODEL_DIR, "lv_egr_model.pkl.sha256"),
+        "blob_model": "lv_egr_model.pkl",
+        "blob_checksum": "lv_egr_model.pkl.sha256",
+        "drop_cols": 19
+    },
+    
 }
 
 
@@ -356,10 +376,19 @@ def predict():
 
     try:
         # Download and verify the model for the selected product
-        asyncio.run(async_download_and_verify_model(product))
+        # asyncio.run(async_download_and_verify_model(product))
 
-        # Load the model for the selected product
-        model_pipeline = joblib.load(product_model_map["model_path"])
+        # # Load the model for the selected product
+        # model_pipeline = joblib.load(product_model_map["model_path"])
+
+        try:
+            ensure_model_directory()
+            logger.info("Downloading and verifying model...")
+            sync_download_and_verify_model(product)
+            logger.info("Loading model pipeline...")
+            sync_load_model_pipeline(product)
+        except Exception as e:
+            logger.error(f"Application failed to load model: {e}\n{traceback.format_exc()}")
 
         # Ensure model is loaded and verified for this product (async, per-product)
         # await async_load_model_pipeline(product)
@@ -382,14 +411,14 @@ def predict():
         logger.info(f"After preprocessing, columns are: {list(input_data.columns)}")
 
         # ----------------------------------------- NEW CODE -----------------------------------------
-        try:
-            ensure_model_directory()
-            logger.info("Downloading and verifying model...")
-            sync_download_and_verify_model(product)
-            logger.info("Loading model pipeline...")
-            sync_load_model_pipeline(product)
-        except Exception as e:
-            logger.error(f"Application failed to load model: {e}\n{traceback.format_exc()}")
+        # try:
+        #     ensure_model_directory()
+        #     logger.info("Downloading and verifying model...")
+        #     sync_download_and_verify_model(product)
+        #     logger.info("Loading model pipeline...")
+        #     sync_load_model_pipeline(product)
+        # except Exception as e:
+        #     logger.error(f"Application failed to load model: {e}\n{traceback.format_exc()}")
 
 
         # try:
