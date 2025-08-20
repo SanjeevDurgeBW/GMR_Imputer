@@ -97,7 +97,7 @@ PRODUCT_MODEL_MAP = {
         "checksum_path": os.path.join(MODEL_DIR, "tam_eheating_model.pkl.sha256"),
         "blob_model": "tam_eheating_model.pkl",
         "blob_checksum": "tam_eheating_model.pkl.sha256",
-        "drop_cols": 19
+        "drop_cols": 18
     },
     "lv_eheating": {
         "model_path": os.path.join(MODEL_DIR, "lv_eheating_model.pkl"),
@@ -105,7 +105,7 @@ PRODUCT_MODEL_MAP = {
         "checksum_path": os.path.join(MODEL_DIR, "lv_eheating_model.pkl.sha256"),
         "blob_model": "lv_eheating_model.pkl",
         "blob_checksum": "lv_eheating_model.pkl.sha256",
-        "drop_cols": 19
+        "drop_cols": 18
     }
 }
 
@@ -406,8 +406,9 @@ def predict():
         #     return redirect(url_for('home'))
 
         # Read Excel file into a DataFrame
-        logger.info(f"product is cv_turbo: {product}")
+        
         if product == "cv_turbo":
+            logger.info(f"product is cv_turbo: {product}")
             input_data = pd.read_excel(uploaded_file, sheet_name='Data', engine="openpyxl")
         else:
             input_data = pd.read_excel(uploaded_file, engine="openpyxl")
