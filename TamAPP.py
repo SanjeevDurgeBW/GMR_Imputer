@@ -77,11 +77,11 @@ PRODUCT_MODEL_MAP = {
     #     "drop_cols": 23
     # },
     "cv_turbo": {
-        "model_path": os.path.join(MODEL_DIR, "cv_turbo_small_18_compressed.pkl"),
-        "checksum_path": os.path.join(MODEL_DIR, "cv_turbo_small_18_compressed.pkl.sha256"),
-        "blob_model": "cv_turbo_small_18_compressed.pkl",
-        "blob_checksum": "cv_turbo_small_18_compressed.pkl.sha256",
-        "drop_cols": 57
+        "model_path": os.path.join(MODEL_DIR, "cv_turbo_small_full_compressed.pkl"),
+        "checksum_path": os.path.join(MODEL_DIR, "cv_turbo_small_full_compressed.pkl.sha256"),
+        "blob_model": "cv_turbo_small_full_compressed.pkl",
+        "blob_checksum": "cv_turbo_small_full_compressed.pkl.sha256",
+        "drop_cols": 23
     },
     "cv_egr": {
         "model_path": os.path.join(MODEL_DIR, "cv_egr_model.pkl"),
