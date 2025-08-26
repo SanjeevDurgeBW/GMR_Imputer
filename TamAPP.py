@@ -77,10 +77,10 @@ PRODUCT_MODEL_MAP = {
     #     "drop_cols": 23
     # },
     "cv_turbo": {
-        "model_path": os.path.join(MODEL_DIR, "cv_turbo_d8_model.pkl"),
-        "checksum_path": os.path.join(MODEL_DIR, "cv_turbo_d8_model.pkl.sha256"),
-        "blob_model": "cv_turbo_d8_model.pkl",
-        "blob_checksum": "cv_turbo_d8_model.pkl.sha256",
+        "model_path": os.path.join(MODEL_DIR, "cv_turbo_d8_new_model.pkl"),
+        "checksum_path": os.path.join(MODEL_DIR, "cv_turbo_d8_new_model.pkl.sha256"),
+        "blob_model": "cv_turbo_d8_new_model.pkl",
+        "blob_checksum": "cv_turbo_d8_new_model.pkl.sha256",
         "drop_cols": 23
     },
     "cv_egr": {
