@@ -15,6 +15,7 @@ from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_excep
 
 # This is the same class you used when training
 from sequential_imputer import SequentialImputer
+from sequential_imputer import SequentialImputer_cv
 
 # ----------------------------------------------------------------
 # Configure Logging
@@ -54,7 +55,6 @@ MODEL_DIR = os.path.join(HOME_DIR, 'models')
 PRODUCT_MODEL_MAP = {
     "lv_turbo": {
         "model_path": os.path.join(MODEL_DIR, "lv_turbo_model.pkl"),
-        # "compressed_model_path": os.path.join(MODEL_DIR, "lv_turbo_model.pkl.gz"),
         "checksum_path": os.path.join(MODEL_DIR, "lv_turbo_model.pkl.sha256"),
         "blob_model": "lv_turbo_model.pkl",
         "blob_checksum": "lv_turbo_model.pkl.sha256",
@@ -62,30 +62,20 @@ PRODUCT_MODEL_MAP = {
     },
     "lv_egr": {
         "model_path": os.path.join(MODEL_DIR, "lv_egr_model.pkl"),
-        # "compressed_model_path": os.path.join(MODEL_DIR, "lv_egr_model.pkl.gz"),
         "checksum_path": os.path.join(MODEL_DIR, "lv_egr_model.pkl.sha256"),
         "blob_model": "lv_egr_model.pkl",
         "blob_checksum": "lv_egr_model.pkl.sha256",
         "drop_cols": 19
     },
-    # "cv_turbo": {
-    #     "model_path": os.path.join(MODEL_DIR, "cv_turbo_model.pkl"),
-    #     # "compressed_model_path": os.path.join(MODEL_DIR, "cv_turbo_model.pkl.gz"),
-    #     "checksum_path": os.path.join(MODEL_DIR, "cv_turbo_model.pkl.sha256"),
-    #     "blob_model": "cv_turbo_model.pkl",
-    #     "blob_checksum": "cv_turbo_model.pkl.sha256",
-    #     "drop_cols": 23
-    # },
     "cv_turbo": {
-        "model_path": os.path.join(MODEL_DIR, "cv_turbo_d8_new_model.pkl"),
-        "checksum_path": os.path.join(MODEL_DIR, "cv_turbo_d8_new_model.pkl.sha256"),
-        "blob_model": "cv_turbo_d8_new_model.pkl",
-        "blob_checksum": "cv_turbo_d8_new_model.pkl.sha256",
+        "model_path": os.path.join(MODEL_DIR, "cv_turbo_latest_model.pkl"),
+        "checksum_path": os.path.join(MODEL_DIR, "cv_turbo_latest_model.pkl.sha256"),
+        "blob_model": "cv_turbo_latest_model.pkl",
+        "blob_checksum": "cv_turbo_latest_model.pkl.sha256",
         "drop_cols": 23
     },
     "cv_egr": {
         "model_path": os.path.join(MODEL_DIR, "cv_egr_model.pkl"),
-        # "compressed_model_path": os.path.join(MODEL_DIR, "cv_egr_model.pkl.gz"),
         "checksum_path": os.path.join(MODEL_DIR, "cv_egr_model.pkl.sha256"),
         "blob_model": "cv_egr_model.pkl",
         "blob_checksum": "cv_egr_model.pkl.sha256",
@@ -93,7 +83,6 @@ PRODUCT_MODEL_MAP = {
     },
     "tam_eheating": {
         "model_path": os.path.join(MODEL_DIR, "tam_eheating_model.pkl"),
-        # "compressed_model_path": os.path.join(MODEL_DIR, "tam_eheating_model.pkl.gz"),
         "checksum_path": os.path.join(MODEL_DIR, "tam_eheating_model.pkl.sha256"),
         "blob_model": "tam_eheating_model.pkl",
         "blob_checksum": "tam_eheating_model.pkl.sha256",
@@ -101,7 +90,6 @@ PRODUCT_MODEL_MAP = {
     },
     "lv_eheating": {
         "model_path": os.path.join(MODEL_DIR, "lv_eheating_model.pkl"),
-        # "compressed_model_path": os.path.join(MODEL_DIR, "lv_eheating_model.pkl.gz"),
         "checksum_path": os.path.join(MODEL_DIR, "lv_eheating_model.pkl.sha256"),
         "blob_model": "lv_eheating_model.pkl",
         "blob_checksum": "lv_eheating_model.pkl.sha256",
@@ -456,11 +444,6 @@ def predict():
         # imputed_data = await loop.run_in_executor(None, pipeline.transform, input_data)
         # logger.info("Data imputation completed successfully.")
 # ------------new code ---------------------
-
-        # # Save the imputed DataFrame as 'predictions.xlsx'
-        # output_file = 'predictions.xlsx'
-        # imputed_data.to_excel(output_file, index=False)
-        # logger.info(f"Imputed data saved to '{output_file}'.")
 
         # Save the imputed DataFrame with a dynamic filename based on product
         output_file = f'{product}_predictions.xlsx'
