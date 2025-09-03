@@ -81,7 +81,7 @@ PRODUCT_MODEL_MAP = {
         "blob_checksum": "cv_egr_model.pkl.sha256",
         "drop_cols": 18
     },
-    "tam_eheating": {
+    "test": {
         "model_path": os.path.join(MODEL_DIR, "tam_eheating_model.pkl"),
         "checksum_path": os.path.join(MODEL_DIR, "tam_eheating_model.pkl.sha256"),
         "blob_model": "tam_eheating_model.pkl",
