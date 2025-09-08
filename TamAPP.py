@@ -54,10 +54,10 @@ HOME_DIR = os.environ.get('HOME', '/home')
 MODEL_DIR = os.path.join(HOME_DIR, 'models')
 PRODUCT_MODEL_MAP = {
     "lv_turbo": {
-        "model_path": os.path.join(MODEL_DIR, "lv_turbo_model.pkl"),
-        "checksum_path": os.path.join(MODEL_DIR, "lv_turbo_model.pkl.sha256"),
-        "blob_model": "lv_turbo_model.pkl",
-        "blob_checksum": "lv_turbo_model.pkl.sha256",
+        "model_path": os.path.join(MODEL_DIR, "lv_turbo_latest_v2_model.pkl"),
+        "checksum_path": os.path.join(MODEL_DIR, "lv_turbo_latest_v2_model.pkl.sha256"),
+        "blob_model": "lv_turbo_latest_v2_model.pkl",
+        "blob_checksum": "lv_turbo_latest_v2_model.pkl.sha256",
         "drop_cols": 19
     },
     "lv_egr": {
