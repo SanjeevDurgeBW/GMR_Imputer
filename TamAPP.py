@@ -61,10 +61,10 @@ PRODUCT_MODEL_MAP = {
         "drop_cols": 19
     },
     "lv_egr": {
-        "model_path": os.path.join(MODEL_DIR, "lv_egr_model.pkl"),
-        "checksum_path": os.path.join(MODEL_DIR, "lv_egr_model.pkl.sha256"),
-        "blob_model": "lv_egr_model.pkl",
-        "blob_checksum": "lv_egr_model.pkl.sha256",
+        "model_path": os.path.join(MODEL_DIR, "lv_egr_latest_v2_model.pkl"),
+        "checksum_path": os.path.join(MODEL_DIR, "lv_egr_latest_v2_model.pkl.sha256"),
+        "blob_model": "lv_egr_latest_v2_model.pkl",
+        "blob_checksum": "lv_egr_latest_v2_model.pkl.sha256",
         "drop_cols": 19
     },
     "cv_turbo": {
@@ -75,10 +75,10 @@ PRODUCT_MODEL_MAP = {
         "drop_cols": 23
     },
     "cv_egr": {
-        "model_path": os.path.join(MODEL_DIR, "cv_egr_model.pkl"),
-        "checksum_path": os.path.join(MODEL_DIR, "cv_egr_model.pkl.sha256"),
-        "blob_model": "cv_egr_model.pkl",
-        "blob_checksum": "cv_egr_model.pkl.sha256",
+        "model_path": os.path.join(MODEL_DIR, "cv_egr_latest_v2_model.pkl"),
+        "checksum_path": os.path.join(MODEL_DIR, "cv_egr_latest_v2_model.pkl.sha256"),
+        "blob_model": "cv_egr_latest_v2_model.pkl",
+        "blob_checksum": "cv_egr_latest_v2_model.pkl.sha256",
         "drop_cols": 18
     },
     "test": {
