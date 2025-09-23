@@ -94,7 +94,15 @@ PRODUCT_MODEL_MAP = {
         "blob_model": "lv_eheating_model.pkl",
         "blob_checksum": "lv_eheating_model.pkl.sha256",
         "drop_cols": 18
+    },
+    "o2_switch": {
+        "model_path": os.path.join(MODEL_DIR, "o2_switch_latest_v2_model.pkl"),
+        "checksum_path": os.path.join(MODEL_DIR, "o2_switch_latest_v2_model.pkl.sha256"),
+        "blob_model": "o2_switch_latest_v2_model.pkl",
+        "blob_checksum": "o2_switch_latest_v2_model.pkl.sha256",
+        "drop_cols": 24
     }
+
 }
 
 
