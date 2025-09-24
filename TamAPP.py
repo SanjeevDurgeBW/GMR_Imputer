@@ -89,11 +89,11 @@ PRODUCT_MODEL_MAP = {
         "drop_cols": 18
     },
     "lv_eheating": {
-        "model_path": os.path.join(MODEL_DIR, "lv_eheating_model.pkl"),
-        "checksum_path": os.path.join(MODEL_DIR, "lv_eheating_model.pkl.sha256"),
-        "blob_model": "lv_eheating_model.pkl",
-        "blob_checksum": "lv_eheating_model.pkl.sha256",
-        "drop_cols": 18
+        "model_path": os.path.join(MODEL_DIR, "lv_eheating_latest_v2_model.pkl"),
+        "checksum_path": os.path.join(MODEL_DIR, "lv_eheating_latest_v2_model.pkl.sha256"),
+        "blob_model": "lv_eheating_latest_v2_model.pkl",
+        "blob_checksum": "lv_eheating_latest_v2_model.pkl.sha256",
+        "drop_cols": 21
     },
     "o2_switch": {
         "model_path": os.path.join(MODEL_DIR, "o2_switch_latest_v2_model.pkl"),
