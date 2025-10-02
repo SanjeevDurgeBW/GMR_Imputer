@@ -2,16 +2,15 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title> Data Imputation </title>
+    <title>Data Imputation Portal</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Select2 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 </head>
 <body>
     <div class="container mt-5">
-        <h1 class="text-center">Data Imputation</h1>
-        <p class="text-center">Select a product and upload an Excel file to receive predictions.</p>
+        <h1 class="text-center">Data Imputation Portal</h1>
+        <p class="text-center">Choose a product to either train a model or run predictions.</p>
 
         <!-- Flash Messages -->
         {% with messages = get_flashed_messages(with_categories=true) %}
@@ -19,51 +18,133 @@
             {% for category, message in messages %}
               <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
                 {{ message }}
+                {% if category == 'success' and accuracy_file %}
+                  <a href="{{ url_for('download_accuracy', filename=accuracy_file) }}" class="btn btn-sm btn-outline-dark ms-3">Download Accuracy Report</a>
+                {% endif %}
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
               </div>
             {% endfor %}
           {% endif %}
         {% endwith %}
 
-        <div class="row justify-content-center">
+        <div class="row">
+            <!-- Training Section
             <div class="col-md-6">
-                <form action="{{ url_for('predict') }}" method="post" enctype="multipart/form-data">
-                    <div class="mb-3">
-                        <label for="product" class="form-label">Select Product</label>
-                        <select class="form-select" id="product" name="product" required>
-                            <option value="">-- Select a product --</option>
-                            <option value="test">Test</option>
-                            <option value="lv_eheating">Light Vehicle EHeating</option>
-                            <option value="lv_turbo">Light Vehicle Turbo</option>
-                            <option value="lv_egr">Light Vehicle EGR</option>
-                            <option value="cv_turbo">Commercial Vehicle Turbo</option>
-                            <option value="cv_egr">Commercial Vehicle EGR</option>
-                            <option value="o2_switch">O2 Switch</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label for="file" class="form-label">Select Excel File</label>
-                        <input class="form-control" type="file" id="file" name="file" accept=".xlsx" required>
-                    </div>
-                    <button type="submit" class="btn btn-primary">Upload and Predict</button>
-                </form>
+                <div class="card p-4 shadow-sm mb-4">
+                    <h4>Train Model</h4>
+                    <form action="{{ url_for('train') }}" method="post" enctype="multipart/form-data" id="train-form">
+                        <div class="mb-3">
+                            <label for="train_product" class="form-label">Select Product</label>
+                            <select class="form-select" id="train_product" name="product" required>
+                                <option value="">-- Select a product --</option>
+                                <option value="tam_eheating">Tam Eheating</option>
+                                <option value="lv_eheating">Light Vehicle EHeating</option>
+                                <option value="lv_turbo">Light Vehicle Turbo</option>
+                                <option value="lv_egr">Light Vehicle EGR</option>
+                                <option value="cv_turbo">Commercial Vehicle Turbo</option>
+                                <option value="cv_egr">Commercial Vehicle EGR</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="train_file" class="form-label">Upload Training Data</label>
+                            <input class="form-control" type="file" id="train_file" name="train_file" accept=".xlsx" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="train_percent" class="form-label">Training Data Percentage</label>
+                            <input type="range" class="form-range" id="train_percent" name="train_percent" min="10" max="100" step="10" value="80">
+                            <div><strong><span id="percent-display">80</span>%</strong> of data will be used for training.</div>
+                        </div>
+                        <button type="submit" class="btn btn-success">Start Training</button>
+                        <div class="spinner-border text-primary mt-2" role="status" id="training-spinner" style="display:none;">
+                            <span class="visually-hidden">Training...</span>
+                        </div>
+                    </form>
+                </div>
+            </div> -->
+
+            
+            <!-- Training Section -->
+            <div class="col-md-6">
+                <div class="card p-4 shadow-sm mb-4">
+                    <h4>Train Model</h4>
+                    <form action="{{ url_for('train') }}" method="post" enctype="multipart/form-data" id="train-form">
+                        <div class="mb-3">
+                            <label for="train_product" class="form-label">Select Existing Product</label>
+                            <select class="form-select" id="train_product" name="product">
+                                <option value="">-- Optional: Select a predefined product --</option>
+                                {% for product in products %}
+                                    <option value="{{ product }}">{{ product }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="custom_product" class="form-label">Or Enter New Product Name</label>
+                            <input type="text" class="form-control" id="custom_product" name="custom_product" placeholder="e.g. ev_powertrain">
+                        </div>
+                        <div class="mb-3">
+                            <label for="train_file" class="form-label">Upload Training Data</label>
+                            <input class="form-control" type="file" id="train_file" name="train_file" accept=".xlsx" required>
+                        </div>
+                        <!-- <div class="mb-3">
+                            <label for="train_percent" class="form-label">Training Data Percentage</label>
+                            <input type="range" class="form-range" id="train_percent" name="train_percent" min="10" max="100" step="10" value="80">
+                            <div><strong><span id="percent-display">80</span>%</strong> of data will be used for training.</div>
+                        </div> -->
+                        <button type="submit" class="btn btn-success">Start Training</button>
+                        <div class="spinner-border text-primary mt-2" role="status" id="training-spinner" style="display:none;">
+                            <span class="visually-hidden">Training...</span>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+
+            <!-- Prediction Section -->
+            <div class="col-md-6">
+                <div class="card p-4 shadow-sm mb-4">
+                    <h4>Predict with Model</h4>
+                    <form action="{{ url_for('predict') }}" method="post" enctype="multipart/form-data">
+                        <div class="mb-3">
+                            <label for="predict_product" class="form-label">Select Product</label>
+                            <select class="form-select" id="predict_product" name="product" required>
+                                <option value="">-- Select a product --</option>
+                                <option value="tam_eheating">Tam Eheating</option>
+                                <option value="lv_eheating">Light Vehicle EHeating</option>
+                                <option value="lv_turbo">Light Vehicle Turbo</option>
+                                <option value="lv_egr">Light Vehicle EGR</option>
+                                <option value="cv_turbo">Commercial Vehicle Turbo</option>
+                                <option value="cv_egr">Commercial Vehicle EGR</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="predict_file" class="form-label">Select Excel File</label>
+                            <input class="form-control" type="file" id="predict_file" name="file" accept=".xlsx" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Upload and Predict</button>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- jQuery (required for Select2) -->
+    <!-- Scripts -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- Select2 JS -->
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script>
-        // Initialize Select2 on the product dropdown
         $(document).ready(function() {
-            $('#product').select2({
+            $('#train_product, #predict_product').select2({
                 placeholder: "Search or select a product",
                 allowClear: true,
                 width: '100%'
+            });
+
+            $('#train_percent').on('input', function() {
+                $('#percent-display').text($(this).val());
+            });
+
+            $('#train-form').on('submit', function() {
+                $('#training-spinner').show();
             });
         });
     </script>
