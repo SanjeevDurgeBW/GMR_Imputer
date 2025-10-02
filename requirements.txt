@@ -13,5 +13,3 @@ aiohttp==3.8.4
 openpyxl==3.1.2
 uvicorn==0.22.0
 Flask[async]==2.3.2
-xlrd==2.0.1
-werkzeug

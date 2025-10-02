@@ -8,12 +8,11 @@ import sys
 import hashlib
 import asyncio  # For asynchronous operations
 import aiofiles  # For asynchronous file operations
-import json
+
 from azure.storage.blob.aio import BlobServiceClient  # Asynchronous BlobServiceClient
 from azure.core.exceptions import AzureError
 from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
-from werkzeug.utils import secure_filename
-from model_train import run_training_pipeline  
+
 # This is the same class you used when training
 from sequential_imputer import SequentialImputer
 
@@ -305,32 +304,6 @@ async def async_load_model_pipeline(product):
             logger.error(f"Error loading model: {e}\n{traceback.format_exc()}")
             raise
 
-REGISTRY_PATH = "product_registry.json"
-
-def add_product_to_registry(product_name):
-    """
-    Adds a new product to the registry if not already present.
-    """
-    product_name = product_name.strip().lower()
-    products = []
-
-    if os.path.exists(REGISTRY_PATH):
-        with open(REGISTRY_PATH, "r") as f:
-            products = json.load(f)
-
-    if product_name not in products:
-        products.append(product_name)
-        with open(REGISTRY_PATH, "w") as f:
-            json.dump(products, f, indent=2)
-
-def get_all_registered_products():
-    """
-    Returns a list of all registered products.
-    """
-    if os.path.exists(REGISTRY_PATH):
-        with open(REGISTRY_PATH, "r") as f:
-            return json.load(f)
-    return []
 
 # async def async_load_model_pipeline(product):
 #     global model_pipeline
@@ -362,7 +335,6 @@ def get_all_registered_products():
 @app.route('/')
 def home():
     # return render_template('index.html')
-    products = get_all_registered_products()
     return render_template('index.html', products=PRODUCT_MODEL_MAP.keys())
 
 @app.route('/health')
@@ -371,67 +343,6 @@ def health():
     Health check endpoint for Azure App Service.
     """
     return jsonify({"status": "OK"}), 200
-
-# @app.route('/train', methods=['POST'])
-# def train():
-#     product = request.form.get('product')
-#     train_file = request.files.get('train_file')
-#     # train_percent = int(request.form.get('train_percent', 80))
-
-#     if not product or not train_file:
-#         flash("Please select a product and upload training data.", "danger")
-#         return redirect(url_for('home'))
-
-#     try:
-#         # Save uploaded file
-#         filename = secure_filename(train_file.filename)
-#         filepath = os.path.join("uploads", filename)
-#         train_file.save(filepath)
-
-#         # Run training logic here
-#         accuracy_file = run_training_pipeline(product, filepath)
-
-#         flash(f"Training complete for {product}.", "success")
-#         return render_template('index.html', training_complete=True, accuracy_file=accuracy_file)
-
-#     except Exception as e:
-#         logger.error(f"Training failed: {e}")
-#         flash(f"Training failed: {str(e)}", "danger")
-#         return redirect(url_for('home'))
-    
-@app.route('/train', methods=['POST'])
-def train():
-    product = request.form.get('product')
-    custom_product = request.form.get('custom_product')
-    train_file = request.files.get('train_file')
-    connect_str = os.environ.get('AZURE_STORAGE_CONNECTION_STRING')
-
-    product_name = custom_product.strip() if custom_product else product
-
-    if not product_name or not train_file:
-        flash("Please provide a product name and upload training data.", "danger")
-        return redirect(url_for('home'))
-
-    try:
-        filename = secure_filename(train_file.filename)
-        filepath = os.path.join("training-files", filename)
-        train_file.save(filepath)
-
-        # Run training
-        model_filename = run_training_pipeline(product_name, filepath, connect_str,  container_name='models')
-
-        # Update registry
-        add_product_to_registry(product_name)
-        products = get_all_registered_products()
-
-        flash(f"Training complete for {product_name}.", "success")
-        return render_template('index.html', products=products, training_complete=True, accuracy_file=accuracy_file)
-
-    except Exception as e:
-        logger.error(f"Training failed: {e}")
-        flash(f"Training failed: {str(e)}", "danger")
-        return redirect(url_for('home'))
-
 
 @app.route('/predict', methods=['POST'])
 def predict():
@@ -489,6 +400,25 @@ def predict():
         logger.info("Preprocessed input data to match training.")
         logger.info(f"After preprocessing, columns are: {list(input_data.columns)}")
 
+        # ----------------------------------------- NEW CODE -----------------------------------------
+        # try:
+        #     ensure_model_directory()
+        #     logger.info("Downloading and verifying model...")
+        #     sync_download_and_verify_model(product)
+        #     logger.info("Loading model pipeline...")
+        #     sync_load_model_pipeline(product)
+        # except Exception as e:
+        #     logger.error(f"Application failed to load model: {e}\n{traceback.format_exc()}")
+
+
+        # try:
+        #     ensure_model_directory()
+        #     logger.info("Downloading and verifying model...")
+        #     asyncio.run(async_load_model_pipeline(product))
+        #     logger.info("Loading model pipeline...")
+        # except Exception as e:
+        #     logger.error(f"Application failed to load model: {e}\n{traceback.format_exc()}")
+        # ----------------------------------------- NEW CODE -----------------------------------------
 
         # 3) Check if model pipeline is loaded
         if model_pipeline is None:
